@@ -1,20 +1,32 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# SeguidorsExpress Deployment Guide (Vercel)
 
-# Run and deploy your AI Studio app
+This project is ready to be deployed to Vercel. Follow these steps to set up your production environment.
 
-This contains everything you need to run your app locally.
+## 1. Prerequisites
+- A [Vercel](https://vercel.com) account.
+- Your Firebase project credentials.
 
-View your app in AI Studio: https://ai.studio/apps/f1551a99-588b-4388-b362-bd4f1d3fc933
+## 2. Environment Variables
+When importing the project to Vercel, you **MUST** add the following Environment Variables in the Vercel Dashboard (Settings > Environment Variables):
 
-## Run Locally
+| Variable Name | Description |
+|---------------|-------------|
+| `VITE_FIREBASE_API_KEY` | Your Firebase API Key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Your Firebase Auth Domain |
+| `VITE_FIREBASE_PROJECT_ID` | Your Firebase Project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Your Firebase Storage Bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Your Firebase Messaging Sender ID |
+| `VITE_FIREBASE_APP_ID` | Your Firebase App ID |
+| `VITE_FIREBASE_FIRESTORE_DATABASE_ID` | (Optional) Your Firestore Database ID (defaults to `(default)`) |
 
-**Prerequisites:**  Node.js
+## 3. Build Settings
+Vercel should automatically detect the settings, but ensure they match:
+- **Framework Preset**: Vite
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
 
+## 4. SPA Routing
+The project includes a `vercel.json` file that handles Single Page Application (SPA) routing. This ensures that internal routes like `/wallet` or `/history` work correctly when the page is refreshed.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 5. Firebase Authentication
+Don't forget to add your Vercel deployment URL (e.g., `your-app.vercel.app`) to the **Authorized Domains** list in your Firebase Console (Authentication > Settings > Authorized Domains).
