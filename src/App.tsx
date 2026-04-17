@@ -98,7 +98,6 @@ function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (v: boolea
           <div className="pt-6 border-t border-border">
             <div className="flex items-center gap-3 mb-6 px-2">
               <Avatar className="w-8 h-8 border border-primary/20">
-                <AvatarImage src={profile?.photoURL} />
                 <AvatarFallback className="bg-primary/10 text-primary text-xs">
                   {profile?.displayName?.charAt(0)}
                 </AvatarFallback>

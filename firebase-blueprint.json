@@ -8,7 +8,6 @@
         "uid": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "displayName": { "type": "string" },
-        "photoURL": { "type": "string" },
         "balance": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       },

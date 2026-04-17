@@ -36,7 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
               displayName: firebaseUser.displayName || 'Usuário',
-              photoURL: firebaseUser.photoURL || undefined,
               balance: 0,
               createdAt: new Date().toISOString(),
             };

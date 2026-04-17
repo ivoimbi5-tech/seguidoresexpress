@@ -12,7 +12,6 @@ service cloud.firestore {
     //   - uid: string (required)
     //   - email: string (required, email format)
     //   - displayName: string (required)
-    //   - photoURL: string (optional)
     //   - balance: number (required, >= 0)
     //   - createdAt: string (required, ISO 8601)
     //
