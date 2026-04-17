@@ -178,7 +178,7 @@ export default function Dashboard() {
               Suporte VIP
             </h3>
             <p className="text-[11px] text-zinc-400 mb-4 leading-relaxed">Precisa de ajuda com um pedido ou quer um serviço personalizado?</p>
-            <a href="https://wa.me/244900000000" className="text-[11px] font-bold text-primary hover:underline">Falar no WhatsApp →</a>
+            <a href="https://wa.me/244957061345" className="text-[11px] font-bold text-primary hover:underline">Falar no WhatsApp →</a>
           </Card>
         </div>
       </div>

@@ -110,7 +110,7 @@ function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (v: boolea
               </div>
             </div>
             <a 
-              href="https://wa.me/244900000000"
+              href="https://wa.me/244957061345"
               className="w-full flex items-center justify-center gap-2 py-3 bg-[#25D366] text-white font-bold rounded-xl text-xs mb-4 hover:opacity-90 transition-opacity"
             >
               Suporte WhatsApp

@@ -32,8 +32,8 @@ export default function SuccessPage() {
         return;
       }
 
-      const storedInfo = JSON.parse(storedInfoRaw);
-      const effectiveTxId = txId || storedInfo.transactionId;
+      const storedInfo = storedInfoRaw ? JSON.parse(storedInfoRaw) : null;
+      const effectiveTxId = txId || (storedInfo ? storedInfo.transactionId : null);
 
       if (!effectiveTxId) {
         setStatus('error');
@@ -51,13 +51,16 @@ export default function SuccessPage() {
 
           const txData = txSnap.data();
           
-          // Verify against profile and localStorage
-          if (txData.userId !== profile.uid || storedInfo.id !== profile.uid) {
+          // Verify against profile
+          if (txData.userId !== profile.uid) {
             throw new Error('Acesso não autorizado');
           }
 
-          if (txData.amount !== storedInfo.montante) {
-            throw new Error('Divergência de valores');
+          // If we have stored info for THIS transaction, verify amount as sanity check
+          if (storedInfo && storedInfo.transactionId === effectiveTxId) {
+            if (txData.amount !== storedInfo.montante) {
+              console.warn('Divergência de valores entre localStorage e Firestore');
+            }
           }
 
           if (txData.status === 'completed') {

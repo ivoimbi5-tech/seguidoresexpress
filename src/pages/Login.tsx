@@ -96,7 +96,7 @@ export default function Login() {
           <div className="mt-20 pt-10 border-t border-border">
             <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
               <span className="text-zinc-500">Precisa de ajuda?</span>
-              <a href="https://wa.me/244900000000" className="text-primary hover:underline">Falar no WhatsApp</a>
+              <a href="https://wa.me/244957061345" className="text-primary hover:underline">Falar no WhatsApp</a>
             </div>
           </div>
         </div>
