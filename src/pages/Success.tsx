@@ -21,21 +21,12 @@ export default function SuccessPage() {
     async function verifyAndComplete() {
       if (!profile?.uid) return;
 
-      // Get info from localStorage for verification
       const storedInfoRaw = localStorage.getItem('last_payment_info');
-      if (!storedInfoRaw) {
-        // If no localStorage and no URL param, we can't do anything
-        if (!txId) {
-          console.error('No payment info found in localStorage or URL');
-          setStatus('error');
-        }
-        return;
-      }
-
       const storedInfo = storedInfoRaw ? JSON.parse(storedInfoRaw) : null;
       const effectiveTxId = txId || (storedInfo ? storedInfo.transactionId : null);
 
       if (!effectiveTxId) {
+        console.error('No transaction ID found');
         setStatus('error');
         return;
       }
@@ -51,31 +42,31 @@ export default function SuccessPage() {
 
           const txData = txSnap.data();
           
-          // Verify against profile
+          // CRITICAL: Integrity Check
           if (txData.userId !== profile.uid) {
             throw new Error('Acesso não autorizado');
           }
 
-          // If we have stored info for THIS transaction, verify amount as sanity check
-          if (storedInfo && storedInfo.transactionId === effectiveTxId) {
-            if (txData.amount !== storedInfo.montante) {
-              console.warn('Divergência de valores entre localStorage e Firestore');
-            }
-          }
-
+          // IF ALREADY COMPLETED: Just show success, don't update balance again
           if (txData.status === 'completed') {
             setAmount(txData.amount);
             setStatus('success');
-            localStorage.removeItem('last_payment_info'); // Clear after success
             return;
           }
 
+          // IF NOT PENDING: Stop (cancelled or failed)
           if (txData.status !== 'pending') {
-            throw new Error('Transação já processada ou inválida');
+            throw new Error('Esta transação já não pode ser processada.');
           }
 
-          // Update transaction and user balance atomically
-          transaction.update(txRef, { status: 'completed' });
+          // ATOMIC UPDATE: Mark as completed and update balance in one go
+          // This prevents "Double Spend" attacks or manual URL refreshing
+          transaction.update(txRef, { 
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+            verificationSource: 'client_event_confirmed'
+          });
+
           transaction.update(doc(db, 'users', profile.uid), { 
             balance: increment(txData.amount) 
           });
@@ -84,7 +75,12 @@ export default function SuccessPage() {
         });
 
         setStatus('success');
-        localStorage.removeItem('last_payment_info'); // Clear after success
+        localStorage.removeItem('last_payment_info');
+
+        // Auto redirect to dashboard after 5 seconds
+        setTimeout(() => {
+          navigate('/');
+        }, 5000);
       } catch (error) {
         console.error('Success page error:', error);
         setStatus('error');
@@ -145,8 +141,11 @@ export default function SuccessPage() {
         transition={{ delay: 0.2 }}
       >
         <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Pagamento Confirmado!</h1>
-        <p className="text-zinc-400 mb-8">
+        <p className="text-zinc-400 mb-2">
           Seu saldo de <span className="text-primary font-bold">{amount.toLocaleString('pt-AO')} Kz</span> já está disponível.
+        </p>
+        <p className="text-[10px] text-zinc-500 mb-8 uppercase tracking-widest font-bold">
+          Redirecionando para o dashboard em instantes...
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-sm mx-auto">

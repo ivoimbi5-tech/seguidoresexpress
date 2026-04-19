@@ -5,7 +5,6 @@ import { Service, Order } from '../types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Instagram, Music2, Facebook, Twitter, Info, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -23,6 +22,15 @@ export default function NewOrder() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filteredServices = SERVICES.filter(s => s.platform === selectedPlatform);
+
+  useEffect(() => {
+    // Auto-select the first service for the selected platform
+    const platformService = SERVICES.find(s => s.platform === selectedPlatform);
+    if (platformService) {
+      setSelectedService(platformService);
+      setQuantity(platformService.minQuantity);
+    }
+  }, [selectedPlatform]);
 
   useEffect(() => {
     if (selectedService) {
@@ -121,7 +129,7 @@ export default function NewOrder() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Platform Selection */}
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Plataforma & Rede Social</Label>
+                <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Selecione a Rede Social</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {PLATFORMS.map((p) => (
                     <button
@@ -129,7 +137,6 @@ export default function NewOrder() {
                       type="button"
                       onClick={() => {
                         setSelectedPlatform(p.id);
-                        setSelectedService(null);
                       }}
                       className={`
                         flex flex-col items-center justify-center gap-2 p-6 rounded-xl border transition-all
@@ -145,25 +152,13 @@ export default function NewOrder() {
                 </div>
               </div>
 
-              {/* Service Selection */}
-              <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tipo de Serviço</Label>
-                <Select 
-                  value={selectedService?.id || ""} 
-                  onValueChange={(val) => setSelectedService(SERVICES.find(s => s.id === val) || null)}
-                >
-                  <SelectTrigger className="bg-secondary border-border h-14 rounded-xl focus:ring-primary/20 text-xs font-medium">
-                    <SelectValue placeholder="Selecione um serviço" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border text-zinc-100">
-                    {filteredServices.map((s) => (
-                      <SelectItem key={s.id} value={s.id} className="focus:bg-primary/10 focus:text-primary text-xs py-3">
-                        {s.name} - {(s.pricePer1000 / 10).toLocaleString('pt-AO')} Kz / 100 un
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Service Selection Removed - Auto-selected based on platform */}
+              {selectedService && (
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Serviço Ativo</span>
+                  <span className="text-xs font-bold text-white">{selectedService.name}</span>
+                </div>
+              )}
 
               {/* Link Input */}
               <div className="space-y-3">
@@ -185,7 +180,7 @@ export default function NewOrder() {
                     type="number" 
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
-                    min={selectedService?.minQuantity || 1}
+                    min={selectedService?.minQuantity || 100}
                     max={selectedService?.maxQuantity || 100000}
                     className="bg-secondary border-border h-12 rounded-xl focus:ring-primary/20 text-xs font-bold"
                   />

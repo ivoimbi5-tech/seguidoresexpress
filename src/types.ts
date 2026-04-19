@@ -39,5 +39,8 @@ export interface Transaction {
   type: 'deposit' | 'order';
   status: 'pending' | 'completed' | 'failed';
   paymentLink?: string;
+  externalId?: string;
+  reference?: string;
+  entity?: string;
   createdAt: string;
 }

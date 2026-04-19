@@ -18,7 +18,9 @@ import {
   Clock,
   AlertCircle,
   Copy,
-  ExternalLink
+  ExternalLink,
+  X,
+  MessageCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
@@ -48,62 +50,34 @@ export default function WalletPage() {
     return () => unsubscribe();
   }, [profile?.uid]);
 
-  const PAYMENT_LINKS: Record<number, string> = {
-    1000: 'https://pay.clickpayon.com/42f62615-1c35-4958-a491-c71a20235bde',
-    500: 'https://pay.clickpayon.com/edbd1003-32c3-4fc1-8be3-c5fdfecb3864',
-    300: 'https://pay.clickpayon.com/357aa704-8209-4445-90a9-16185409ea6b',
-  };
-
-  const handleDeposit = async () => {
+  const handleDeposit = () => {
     if (!profile) return;
 
-    const paymentLink = PAYMENT_LINKS[amount];
-    
-    if (!paymentLink) {
-      toast.error('Por favor, selecione um dos valores pré-definidos (300, 500 ou 1000 Kz).');
+    if (amount < 500) {
+      toast.error('O valor mínimo para depósito por WhatsApp é 500 Kz.');
       return;
     }
 
-    setIsGenerating(true);
-    
-    try {
-      const txData: Omit<Transaction, 'id'> = {
-        userId: profile.uid,
-        amount,
-        type: 'deposit',
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        paymentLink
-      };
+    const message = `Olá! Gostaria de adicionar saldo à minha conta SeguidoresExpress.
+Valor: ${amount.toLocaleString('pt-AO')} Kz
+ID do Usuário: ${profile.uid}
+Email: ${profile.email}`;
 
-      const docRef = await addDoc(collection(db, 'transactions'), txData);
-      
-      // Store payment info in localStorage including the transaction ID
-      const paymentInfo = {
-        id: profile.uid,
-        nome: profile.displayName,
-        email: profile.email,
-        montante: amount,
-        transactionId: docRef.id
-      };
-      localStorage.setItem('last_payment_info', JSON.stringify(paymentInfo));
-      
-      toast.info('Link de pagamento gerado! Redirecionando...');
-      
-      // In a real scenario, the payment gateway would redirect to /success?tx=ID
-      // For this demo, we'll open the payment link and then provide a way to "Verify"
-      // which will take the user to the success page with the transaction ID.
-      
-      window.open(paymentLink, '_blank');
-    } catch (error) {
-      console.error('Deposit error:', error);
-      toast.error('Erro ao gerar link de pagamento.');
-    } finally {
-      setIsGenerating(false);
-    }
+    const encodedMessage = encodeURIComponent(message);
+    // WhatsApp number from App.tsx support link
+    const whatsappNumber = '244957061345'; 
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
+    toast.info('Abrindo WhatsApp para finalizar o depósito...');
   };
 
-  const quickAmounts = [300, 500, 1000];
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copiado para a área de transferência');
+  };
+
+  const quickAmounts = [1, 300, 500, 1000];
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 lg:space-y-8">
@@ -120,20 +94,24 @@ export default function WalletPage() {
         </div>
       </header>
 
+      <AnimatePresence>
+        {/* Payment Modal Removed - Using WhatsApp redirection now */}
+      </AnimatePresence>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Deposit Section */}
         <div className="space-y-6">
-          <Card className="bg-card border-border p-8 rounded-2xl">
+            <Card className="bg-card border-border p-8 rounded-2xl">
             <h3 className="text-sm font-bold text-white mb-4">Adicionar Saldo</h3>
             <p className="text-xs text-zinc-500 mb-6 leading-relaxed">
-              Selecione um valor para recarregar sua conta instantaneamente via Link de Pagamento.
+              Informe o valor que deseja depositar. Você será redirecionado para o nosso WhatsApp para concluir o pagamento.
             </p>
 
             <div className="space-y-6">
               <div className="space-y-3">
                 <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Escolha o Valor (Kz)</Label>
                 <div className="grid grid-cols-3 gap-2">
-                  {quickAmounts.map((q) => (
+                  {[500, 1000, 2000, 5000, 10000, 20000].map((q) => (
                     <button
                       key={q}
                       onClick={() => setAmount(q)}
@@ -151,38 +129,42 @@ export default function WalletPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Valor Selecionado</Label>
+                <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Valor do Depósito</Label>
                 <div className="relative">
                   <Input 
                     type="number" 
                     value={amount}
-                    readOnly
-                    className="bg-secondary border-border h-12 rounded-xl text-sm font-bold pl-4 opacity-70 cursor-not-allowed"
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    className="bg-secondary border-border h-12 rounded-xl text-sm font-bold pl-4"
+                    placeholder="Digite o valor em Kz..."
                   />
                 </div>
               </div>
 
               <Button 
                 onClick={handleDeposit}
-                disabled={isGenerating || !amount}
-                className="w-full h-14 bg-primary hover:bg-primary/90 text-background font-black rounded-xl text-sm shadow-[0_0_20px_rgba(16,185,129,0.2)] disabled:opacity-50"
+                className="w-full h-14 bg-[#25D366] hover:bg-[#25D366]/90 text-white font-black rounded-xl text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,211,102,0.2)]"
               >
-                {isGenerating ? 'Processando...' : 'PAGAR AGORA'}
+                <MessageCircle className="w-5 h-5" />
+                PAGAR VIA WHATSAPP
               </Button>
 
               <p className="text-[10px] text-zinc-600 text-center">
-                Processamento instantâneo via ClickPay
+                Atendimento Rápido e Seguro
               </p>
             </div>
           </Card>
 
           <div className="p-6 bg-primary/5 border border-primary/20 rounded-2xl space-y-4">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="w-5 h-5 text-primary" />
-              <h4 className="text-xs font-bold text-white uppercase tracking-widest">Pagamento Seguro</h4>
+              <Smartphone className="w-5 h-5 text-primary" />
+              <h4 className="text-xs font-bold text-white uppercase tracking-widest">Como funciona?</h4>
             </div>
             <p className="text-[10px] text-zinc-400 leading-relaxed">
-              Suas transações são processadas através de gateways certificados em Angola. O saldo é creditado automaticamente após a confirmação.
+              1. Selecione o valor desejado.<br />
+              2. Clique no botão verde de WhatsApp.<br />
+              3. Envie a mensagem automática e anexe o comprovante.<br />
+              4. Seu saldo será creditado manualmente pela nossa equipa após verificação.
             </p>
           </div>
         </div>
